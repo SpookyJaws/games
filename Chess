@@ -1,0 +1,188 @@
+from time import time, sleep
+
+board = []
+
+def illegal_move(a, b, x, y, piece):
+    print(a,b,x,y,piece)
+    # Check if the coordinates are within the board bounds
+    if not (0 <= x <= 7) or not (0 <= y <= 7):
+        return False
+    
+    # Check if the destination square is occupied by the same color piece
+    if piece[1] == '-' and board[x][y][1] != '-':
+        return False
+    if piece[1] != '-' and board[x][y][1] == '-':
+        return False
+
+    # Calculate the row and column differences
+    dx = abs(x - a)
+    dy = abs(y - b)
+
+    # Check specific rules for each type of chess piece
+    if piece[0] == '^':  # Black Pawn
+        if dx == 1 and dy == 0 and board[x][y] == '  ':
+            return True
+        if dx == 1 and dy == 1 and board[x][y][1] == '-':
+            return True
+        return False
+
+    if piece[0] == 'v':  # White Pawn
+        if dx == 1 and dy == 0 and board[x][y] == '  ':
+            return True
+        if dx == 1 and dy == 1 and board[x][y][1] == '^':
+            return True
+        return False
+
+    if piece[0] == 'k':  # Knight
+        if (dx == 2 and dy == 1) or (dx == 1 and dy == 2):
+            return True
+        return False
+
+    if piece[0] == 'B':  # Bishop
+        if dx == dy:
+            if dx == 0:
+                return False  # Invalid move (same position)
+            step_x = 1 if x > a else -1
+            step_y = 1 if y > b else -1
+            for i in range(1, dx):
+                if board[a + i * step_x][b + i * step_y] != '  ':
+                    return False  # Blocked by another piece
+            return True
+
+    if piece[0] == 'R':  # Rook
+        if dx == 0 or dy == 0:
+            step_x = 1 if x > a else -1 if x < a else 0
+            step_y = 1 if y > b else -1 if y < b else 0
+            for i in range(1, max(dx, dy)):
+                if board[a + i * step_x][b + i * step_y] != '  ':
+                    return False  # Blocked by another piece
+            return True
+
+    if piece[0] == 'Q':  # Queen (Combining Bishop and Rook moves)
+        if dx == dy:
+            step_x = 1 if x > a else -1 if x < a else 0
+            step_y = 1 if y > b else -1 if y < b else 0
+            i = 1
+            while i < dx:
+                if board[a + i * step_x][b + i * step_y] != '  ':
+                    return False  # Blocked by another piece
+                i += 1
+            return True
+        if dx == 0 or dy == 0:
+            step_x = 1 if x > a else -1 if x < a else 0
+            step_y = 1 if y > b else -1 if y < b else 0
+            i = 1
+            while i < max(dx, dy):
+                if board[a + i * step_x][b + i * step_y] != '  ':
+                    return False  # Blocked by another piece
+                i += 1
+            return True
+
+    if piece[0] == 'K':  # King
+        if dx <= 1 and dy <= 1:
+            return True    
+
+    # All other cases are illegal moves
+    return False
+
+def print_board(board):
+    print("_________________________________________")
+    for row in range(8):
+        print("|    |    |    |    |    |    |    |    |")
+        print(f"| {board[row][0]} | {board[row][1]} | {board[row][2]} | {board[row][3]} | {board[row][4]} | {board[row][5]} | {board[row][6]} | {board[row][7]} | {8-row}")
+        print("|____|____|____|____|____|____|____|____|")
+    print("  a    b    c    d    e    f    g    h")
+
+def chess():
+    try:
+    ###
+        global board
+        board = [['R ', 'k ', 'B ', 'Q ', 'K ', 'B ', 'k ', 'R '],
+             ['v ', 'v ', 'v ', 'v ', 'v ', 'v ', 'v ', 'v '],
+             ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '],
+             ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '],
+             ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '],
+             ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '],
+             ['^ ', '^ ', '^ ', '^ ', '^ ', '^ ', '^ ', '^ '],
+             ['R-', 'k-', 'B-', 'Q-', 'K-', 'B-', 'k-', 'R-']]
+        mode = 0
+        player = True
+        ###
+        for i in '''
+        Welcome to PY:Chess!/
+        |/
+        1) 2 Player/
+        2) Computer (WIP)/
+        3) Info (Read before playing)
+        ''':
+            if i == '|':
+                sleep(2)
+            elif i == '/':
+                print('')
+            else:
+                print(i, end = '')
+                sleep(0.01)
+        choice = (input('>>> ')).lower()
+        if choice in ('1', '1)', '2p', '2 p', '2 player'):
+            mode = 1
+        elif choice in ('2', '2)', 'c', 'com', 'comp', 'computer'):
+            mode = 2
+        elif choice in ('3', '3)', 'info'):
+            mode = 3
+        if mode == 1:
+            while True:
+                white_king = False
+                black_king = False
+                t = []
+                print()
+                if player == True:
+                    player = False
+                    print("White's Turn to play!")
+                else:
+                    print("Black's Turn to play!")
+                sleep(1)
+                print_board(board)
+                sleep(1)
+                while True:
+                    move = input(">>> ")
+                    if len(move) == 6:
+                        t = []
+                        s = ''
+                        for i in move:
+                            if i.isdigit():
+                                t.append(int(i))
+                            else:
+                                s = s+i
+                        t.extend(s)
+                        if illegal_move(t[0],t[1],t[2],t[3],t[4:]):
+                            board[t[0]][t[1]] = '  '
+                            print(t)
+                            board[t[2]][t[3]] = t[4] + t[5]
+                            break
+                        else:
+                            print("illegal move w")
+                    else:
+                        print("Invalid input")
+                        print("did you read the info in the start?")
+                        print("Press ctrl + c to go back")
+                for i in range(8):
+                    for j in range(8):
+                        if board[i][j] == 'K ':
+                            white_king = True
+                        if board[i][j] == 'K-':
+                            black_king = True
+                if white_king == False:
+                    print("Black wins!")
+                    break
+                elif black_king == False:
+                    print("White wins!")
+                    break
+        chess()
+
+                        
+    except KeyboardInterrupt:
+        pass
+                    
+        
+
+chess()
